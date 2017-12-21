@@ -1,0 +1,67 @@
+function newCurrency() {
+  i = 0
+  //gets current sheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  //gets the home page
+  var home = ss.getSheets()[0];
+  //gets form sheet
+  var newCoin = ss.getSheets()[4];
+  
+  var toCopyFormat = home.getRange("f4:h26");
+  var copyPoint = home.getRange(4, 9);
+  if(newCoin.getRange(newCoin.getRange("i1").getValue()+1,1).getValue() != 1){
+    while(i < 3){
+      i++;
+      home.insertColumnAfter(8);
+    }
+    
+    toCopyFormat.copyTo(copyPoint, {formatOnly: true});
+    home.setColumnWidth(9, 22)
+    home.setColumnWidth(10, 100)
+    home.setColumnWidth(11, 145)
+    
+    //Form Page
+    var rowNumR = newCoin.getRange("i1");
+    var rowNum = rowNumR.getValue()+1;
+    
+    var toCopyName = newCoin.getRange(rowNum, 2);
+    var toCopyTicker = newCoin.getRange(rowNum, 3);
+    
+    toCopyName.copyTo(home.getRange(4, 10), {contentsOnly:true});
+    toCopyTicker.copyTo(home.getRange(6, 10), {contentsOnly:true});
+    
+    rowNumR.setValue(rowNum);
+    
+    //Setting up tracking positions
+    var supply = home.getRange(8, 10);
+    var perCad = home.getRange(11, 10);
+    var owned = home.getRange(13, 10);
+    var totalValue = home.getRange(15, 10);
+    var gainLoss = home.getRange(17, 10);
+    var change1 = home.getRange(20, 10);
+    var change24 = home.getRange(22, 10);
+    var change7 = home.getRange(24, 10);
+    
+    //setting new values to track new coin
+    supply.setValue("=CRYPTOFINANCE(\""+ toCopyTicker.getValue() + "/CAD\", \"total_supply\",\"\",$C$26)");
+    perCad.setValue("=\"$\"&CRYPTOFINANCE(\"" + toCopyTicker.getValue() + "/CAD\",\"\",\"\",$C$26)&\" CAD\"&\" / 1 " + toCopyTicker.getValue() + "\"");
+    owned.setValue(0);
+    totalValue.setValue(0);
+    gainLoss.setValue("=" + owned.getValue() + "*CRYPTOFINANCE(\"" + toCopyTicker.getValue() + "/CAD\",\"\",\"\",$C$26)");
+    change1.setValue("=CRYPTOFINANCE(\""+toCopyTicker.getValue()+"/CAD\", \"change\",\"1h\",$C$26)&\"%\"");
+    change24.setValue("=CRYPTOFINANCE(\""+toCopyTicker.getValue()+"/CAD\", \"change\",\"24h\",$C$26)&\"%\"");
+    change7.setValue("=CRYPTOFINANCE(\""+toCopyTicker.getValue()+"/CAD\", \"change\",\"7d\",$C$26)&\"%\"");
+    
+    var sumFormulaR = home.getRange(11, 14);
+    var sumFormulaV = sumFormulaR.getFormula()
+    
+    sumFormulaR.setValue(sumFormulaV + "+ ($g$17 * (1/(CRYPTOFINANCE(\"BTC/CAD\",\"price\",\"\", $C$26))))");
+    
+    ss.toast("New Currency added! Name: " + toCopyName.getValue() + " Ticker: " + toCopyTicker.getValue() + "!", "CryptoNotifier" , 5);
+  }
+  else {
+    ss.toast("Go to https://goo.gl/2QgKKZ to add a new Currency", "CryptoNotifier", 10)
+  }
+}
+
